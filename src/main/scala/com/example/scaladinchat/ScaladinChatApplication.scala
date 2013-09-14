@@ -1,16 +1,21 @@
 package com.example.scaladinchat
 
 import vaadin.scala._
+import vaadin.scala.server._
 import vaadin.scala.Alignment._
-import vaadin.scala.AbstractTextField.TextChangeEventMode._
 import ChatActor._
+import com.vaadin.shared.communication.PushMode
 
-class ScaladinChatApplication extends Application with ChatClient { app =>
+class ScaladinChatApplication extends UI with ChatClient { app =>
+
+  p.getPushConfiguration.setPushMode(PushMode.AUTOMATIC)
 
   def onReceiveChatMessage(userName: String, msg: String) {
-    val itemId = table.addItem.get
-    table.property(itemId, "User").get.value = userName
-    table.property(itemId, "Message").get.value = msg
+    session.lock()
+    val itemId = table.addItem()
+    table.getProperty(itemId, "User").value = userName
+    table.getProperty(itemId, "Message").value = msg
+    session.unlock()
   }
 
   class LoginPopup extends Window { popup =>
@@ -18,7 +23,7 @@ class ScaladinChatApplication extends Application with ChatClient { app =>
     modal = true
     resizable = false
     closable = false
-    size(200 px, 100 px)
+    size(200 px, 125 px)
 
     content = new VerticalLayout {
       margin = true
@@ -26,19 +31,15 @@ class ScaladinChatApplication extends Application with ChatClient { app =>
 
       val userNameField = add(new TextField)
       add(Button("Login", { e =>
-        val userName = userNameField.value.getOrElse("").toString
-        if (userName.isEmpty) mainWindow.showNotification("User name must be given")
-        else {
+        val userName = (userNameField.value getOrElse "").asInstanceOf[String]
+        if (userName.isEmpty) {
+          Notification.show("User name must be given")
+        } else {
           ChatActor.ref ! Login(app, userName)
-          mainWindow.childWindows -= popup
+          windows -= popup
         }
       }))
     }
-  }
-
-  override def init() {
-    super.init()
-    mainWindow.childWindows += new LoginPopup
   }
 
   override def close() {
@@ -52,17 +53,12 @@ class ScaladinChatApplication extends Application with ChatClient { app =>
     addContainerProperty("Message", classOf[String], None)
   }
 
-  override def main = new VerticalLayout {
+  content = new VerticalLayout {
     margin = true
     spacing = true
     sizeFull()
 
-    add(new HorizontalLayout {
-      width = 100 pct
-
-      add(new ProgressIndicator)
-      add(Button("Logout", close()), alignment = TopRight)
-    })
+    add(Button("Logout", close()), alignment = TopRight)
 
     add(table, ratio = 1)
 
@@ -84,7 +80,8 @@ class ScaladinChatApplication extends Application with ChatClient { app =>
         clickShortcut = KeyShortcut(KeyCode.Enter)
 
         clickListeners += { e =>
-          val msg = msgField.value.getOrElse("").toString
+          // TODO
+          val msg = (msgField.value getOrElse "").asInstanceOf[String]
           if (!msg.isEmpty) {
             ChatActor.ref ! Message(app, msg)
             msgField.value = ""
@@ -93,5 +90,7 @@ class ScaladinChatApplication extends Application with ChatClient { app =>
         }
       })
     })
+
+    windows += new LoginPopup
   }
 }

@@ -9,9 +9,9 @@
 	</context-param>
 	<servlet>
 		<servlet-name>Scaladin Chat</servlet-name>
-		<servlet-class>com.vaadin.terminal.gwt.server.ApplicationServlet</servlet-class>
+		<servlet-class>vaadin.scala.server.ScaladinServlet</servlet-class>
 		<init-param>
-			<param-name>application</param-name>
+			<param-name>ScaladinUI</param-name>
 			<param-value>com.example.scaladinchat.ScaladinChatApplication</param-value>
 		</init-param>
 	</servlet>

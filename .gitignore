@@ -2,3 +2,5 @@
 .classpath
 .cache
 target
+.idea
+.idea_modules
