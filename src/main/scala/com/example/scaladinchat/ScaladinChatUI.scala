@@ -4,18 +4,17 @@ import vaadin.scala._
 import vaadin.scala.server._
 import vaadin.scala.Alignment._
 import ChatActor._
-import com.vaadin.shared.communication.PushMode
 
-class ScaladinChatApplication extends UI with ChatClient { app =>
+class ScaladinChatUI extends UI with ChatClient { app =>
 
-  p.getPushConfiguration.setPushMode(PushMode.AUTOMATIC)
+  pushConfiguration.pushMode = PushMode.Automatic
 
   def onReceiveChatMessage(userName: String, msg: String) {
-    session.lock()
-    val itemId = table.addItem()
-    table.getProperty(itemId, "User").value = userName
-    table.getProperty(itemId, "Message").value = msg
-    session.unlock()
+    access {
+      val itemId = table.addItem()
+      table.getProperty(itemId, "User").value = userName
+      table.getProperty(itemId, "Message").value = msg
+    }
   }
 
   class LoginPopup extends Window { popup =>
@@ -31,7 +30,7 @@ class ScaladinChatApplication extends UI with ChatClient { app =>
 
       val userNameField = add(new TextField)
       add(Button("Login", { e =>
-        val userName = (userNameField.value getOrElse "").asInstanceOf[String]
+        val userName = userNameField.value getOrElse ""
         if (userName.isEmpty) {
           Notification.show("User name must be given")
         } else {
@@ -80,8 +79,7 @@ class ScaladinChatApplication extends UI with ChatClient { app =>
         clickShortcut = KeyShortcut(KeyCode.Enter)
 
         clickListeners += { e =>
-          // TODO
-          val msg = (msgField.value getOrElse "").asInstanceOf[String]
+          val msg = msgField.value getOrElse ""
           if (!msg.isEmpty) {
             ChatActor.ref ! Message(app, msg)
             msgField.value = ""

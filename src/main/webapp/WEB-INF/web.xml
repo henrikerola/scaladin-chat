@@ -12,7 +12,7 @@
 		<servlet-class>vaadin.scala.server.ScaladinServlet</servlet-class>
 		<init-param>
 			<param-name>ScaladinUI</param-name>
-			<param-value>com.example.scaladinchat.ScaladinChatApplication</param-value>
+			<param-value>com.example.scaladinchat.ScaladinChatUI</param-value>
 		</init-param>
 	</servlet>
 	<servlet-mapping>
